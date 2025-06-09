@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Manifest and Theme -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#3367D6">
+
+<!-- iOS Compatibility -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="My PWA App">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<!-- Start Original -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RSI Medication Calculator</title>
+
+  <style>
+    body { font-family: Arial, sans-serif; margin: 15px; }
+    .container { max-width: 800px; margin: auto; }
+
+    .warning-box {
+      background: #ffe6e6;
+      border: 1px solid red;
+      padding: 10px;
+      text-align: center;
+      font-size: 18px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+		.start-button {
+			font-size: 24px;
+			font-weight: bold;
+			padding: 12px 24px;
+			margin: 10px;
+			border: 1 px solid red;
+			background-color: #93c47d;
+			color: black;
+			border-radius: 8px;
+			cursor: pointer;
+		}
+		.start-button:hover {
+			background-color: #45a049;
+		}
+
+    .page-section {
+      display: none;
+    }
+    
+    /* Adult section color */
+    h2.adult-title { 
+    text-align: center; 
+    background-color: #93c47d;
+    font-size: 24px;
+    font-weight: bold;
+    padding: 10px; 
+    border-radius: 5px; 
+    margin-top: 20px;
+    margin-bottom: 10px;
+    }
+    
+    /* Pediatric section color */
+    h3.pediatric-title {
+    text-align: center;
+    background-color: #93c47d;
+    font-size: 24px;
+    font-weight: bold;
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 50px;
+    margin-bottom: 10px;
+    }
+    
+    /* Table headers */
+    .section-title { 
+    font-size: 18px; 
+    font-weight: bold; 
+    margin-top: 5px; 
+    padding: 5px; 
+    text-align: center; 
+    }
+
+    /* Weight input section */
+    .patient-weight {
+    background-color: #fcd7b0;
+    font-size: 22px;
+    font-weight: bold;
+    text-align: center;
+    padding: 20px;
+    border-radius: 5px;
+    }
+    
+    input {
+    width: 33%;
+    height: 40px;
+    display: block;
+    margin: 10px auto;
+    font-size: 24px;
+    text-align: center;
+    }
+    
+    /* Table formatting */
+    table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 5px;
+    }
+    table, th, td {
+    border: 1px solid black;
+    padding: 8px;
+    font-size: 20px;
+    text-align: left;
+    }
+    th { background-color: #f2f2f2; }
+    
+    /* Section color themes */
+    .induction-agents { background-color: #c9daf8; padding: 10px; border-radius: 5px; }
+    .paralytic-agents { background-color: #d9d2e9; padding: 10px; border-radius: 5px; }
+    .adjunct-agents { background-color: #f9e79f; padding: 10px; border-radius: 5px; }
+    
+    /* Ongoing Sedation - Adult blood pressure tiers, Peds history tiers */
+    .sbp110 {
+    background-color: #d9ead3;
+    padding: 10px;
+    border-radius: 5px;
+    margin: 10px 20px;
+    }
+    .sbp110 .section-title { color: darkgreen; }
+    .sbp110 td { background-color: #d1e7dd; }
+    
+    .sbp110low {
+    background-color: #fff2cc;
+    padding: 10px;
+    border-radius: 5px;
+    margin: 10px 20px;
+    }
+    .sbp110low .section-title { color: darkgoldenrod; }
+    
+    .sbp90 {
+    background-color: #f4cccc;
+    padding: 10px;
+    border-radius: 5px;
+    margin: 10px 20px;
+    }
+    .sbp90 .section-title { color: darkred; }
+    
+    .ongoing-sedation {
+    background-color: #e0e0e0;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 10px;
+    }
+    .ongoing-sedation-title {
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 10px;
+    }
+          
+    /* Remove number input spinner controls */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+    }
+    input[type=number] {
+    -moz-appearance: textfield; /* Firefox */
+    }
+  </style>
+</head>
+
+<body>
+  <!-- START PAGE -->
+  <div id="start-page">
+    <h2 class="adult-title">MedSTAR RSI Medication Calculator </h2>
+    <div class="warning-box">
+      ⚠️ This calculator is an adjunct tool. It is not intended to replace clinical judgment or standard medication calculation practices. Always verify all dosages independently. ⚠️
+    </div>
+    <div style="text-align:center; margin: 20px;">
+      <button class="start-button" onclick="showPage('adult-page')">Adult Patient</button>
+      <button class="start-button" onclick="showPage('peds-page')">Pediatric Patient</button>
+    </div>
+  </div>
+
+  <!-- CALCULATOR PAGES -->
+  <div id="adult-page" class="page-section">
+    <!-- ========== ADULT RSI CALCULATOR ========== -->
+    <h2 class="adult-title">Adult RSI Medication Calculator</h2>
+    <!-- Adult Weight Input -->
+      <div class="patient-weight">
+        Patient Weight (kg):
+          <input type="number" id="adultWeightInput" placeholder="Weight (kg)" onchange="calculateDoses('Adult'); calculateKetamineInfusion()" />
+      </div>
+    <!-- Adult Induction Agents -->
+    <div class="induction-agents">
+      <div class="section-title">Induction Agent</div>
+        <table>
+          <tr>
+            <th width="40%">Medication</th>
+            <th width="30%">Dose</th>
+            <th width="30%">Volume (mL)</th>
+          </tr>
+          <tr>
+            <td>Etomidate</td>
+            <td id="EtomidateMg">-- mg</td>
+            <td id="EtomidateMl">-- mL</td>
+          </tr>
+          <tr>
+            <td colspan="3" style="font-size:12px; padding:4px">0.3 mg/kg IV/IO</td>
+          </tr>
+          <tr>
+            <td>Ketamine</td>
+            <td id="KetamineMg">-- mg</td>
+            <td id="KetamineMl">-- mL</td>
+          </tr>
+          <tr>
+            <td colspan="3" style="font-size:12px; padding:4px;">2 mg/kg IV/IO</td>
+          </tr>
+        </table>
+    </div>
+    <!-- Adult Paralytic Agents -->
+    <div class="paralytic-agents">
+      <div class="section-title">Paralytic Agents</div>
+        <table>
+          <tr>
+            <th width="40%">Medication</th>
+            <th width="30%">Dose</th>
+            <th width="30%">Volume (mL)</th>
+          </tr>
+          <tr>
+            <td>Succinylcholine</td>
+            <td id="SuxMg">-- mg</td>
+            <td id="SuxMl">-- mL</td>
+          </tr>
+          <tr>
+            <td colspan="3" style="font-size:12px; padding:3px;">1.5 mg/kg IVP  ||  May repeat Succs with addition of Midazolam 0.05 mg/kg (dose below)</td>
+          </tr>
+          <tr>
+            <td>Rocuronium</td>
+            <td id="RocMg">-- mg</td>
+            <td id="RocMl">-- mL</td>
+          </tr>
+          <tr>
+            <td colspan="3" style="font-size:12px; padding:4px;">0.6-1.2 mg/kg IV/IO</td>
+          </tr>
+          <tr>
+            <td>Vecuronium</td>
+            <td id="VecMg">-- mg</td>
+            <td id="VecMl">-- mL</td>
+          </tr>
+          <tr>
+            <td colspan="3" style="font-size:12px; padding:4px;">0.3 mg/kg IV/IO</td>
+          </tr>
+        </table>
+      </div>
+    <!-- Adult Ongoing Sedation -->
+    <div class="ongoing-sedation">
+      <div class="ongoing-sedation-title">Ongoing Sedation</div>
+        <!-- SBP > 110 -->
+        <div class="sbp110">
+          <div class="section-title">SBP >110 mmHg</div>
+          <table>
+            <tr>
+              <th width="40%">Medication</th>
+              <th width="30%">Dose</th>
+              <th width="30%">Volume (mL)</th>
+            </tr>
+            <tr>
+              <td style="font-size: 20px; padding:2px 0px 2px 8px;">
+                <span style="display:inline-block; vertical-align:middle;">Propofol</span>
+                <span style="display:inline-block; vertical-align:middle;">
+                  <input 
+                    type="number" 
+                    id="PropofolInfusionRate" 
+                    value="5"  
+                    max="50.0" 
+                    onchange="calculatePropofolInfusion()"
+                    style="font-size:20px; padding:2px; width:50px; height:30px;"
+                  />
+                </span>
+                <span style="display:inline-block; vertical-align:middle;"> mcg/kg/min</span>
+                <div id="propofolWarning" style="color: red; font-size: 12px"></div>
+              </td>
+              <td id="PropofolMcg">-- mcg/min</td>
+              <td id="PropofolMl">-- mL/hr</td>
+            </tr>
+            <tr>
+              <td colspan="3" style=" font-size:12px; padding:4px;">5-50 mcg/kg/min; titrate for RASS -2 to -4 and maintain systolic BP >110</td>
+            </tr>
+            <tr>
+              <td>Fentanyl</td>
+              <td id="FentanylHighMg">-- mcg</td>
+              <td id="FentanylHighMl">-- mL</td>
+            </tr>
+            <tr>
+              <td colspan="3" style="font-size:12px; padding:4px;">0.5-1 mcg/kg IV/IO, Q 10 min || NTE 400 mcg</td>
+            </tr>
+            <tr>
+              <td>Ketamine</td>
+              <td id="KetamineSedationMg">-- mg</td>
+              <td id="KetamineSedationMl">-- mL</td>
+            </tr>
+            <tr>
+              <td colspan="3" style="font-size:12px; padding:4px;">Adjunct: consider 25-50 mg Slow IVP, Q 5 min</td>
+            </tr>
+          </table>
+        </div>
+        <!-- SBP < 110 -->
+        <div class="sbp110low">
+          <div class="section-title">SBP <110 mmHg</div>
+          <table>
+            <tr>
+              <th width="40%">Medication</th>
+              <th width="30%">Dose</th>
+              <th width="30%">Volume (mL)</th>
+            </tr>
+            <tr>
+              <td>Midazolam</td>
+              <td id="MidazolamMg">-- mg</td>
+              <td id="MidazolamMl">-- mL</td>
+            </tr>
+            <tr>
+              <td colspan="3" style="font-size:12px; padding:4px;">0.05 mg/kg IV/IO, Q 10 min || NTE 5 mg/dose and NTE 10 mg total</td>
+            </tr>
+            <tr>
+              <td>Fentanyl</td>
+              <td id="FentanylLowMg">-- mcg</td>
+              <td id="FentanylLowMl">-- mL</td>
+            </tr>
+            <tr>
+              <td colspan="3" style="font-size:12px; padding:4px;">0.5-1 mcg/kg IVP, Q 10 min || NTE 200 mcg/dose and NTE 400 mcg total</td>
+            </tr>
+          </table>
+        </div>
+        <!-- SBP < 90 -->
+        <div class="sbp90">
+          <div class="section-title">SBP <100 mmHg</div>
+          <table>
+            <tr>
+              <th width="40%">Medication</th>
+              <th width="30%">Dose</th>
+              <th width="30%">Volume (mL)</th>
+            </tr>
+            <tr>
+              <td>Ketamine Push Dose</td>
+              <td id="KetamineLowMg">-- mg</td>
+              <td id="KetamineLowMl">-- mL</td>
+            </tr>
+            <tr>
+              <td colspan="3" style="font-size:12px; padding:4px;">0.5 mg/kg slow IV/IO, Q 5 min</td>
+            </tr>
+            <tr>
+              <td style="font-size: 20px; padding:2px 0px 2px 8px;">
+                <span style="display:inline-block; vertical-align:middle;">Ketamine</span>
+                <span style="display:inline-block; vertical-align:middle;">
+                  <input 
+                    type="number" 
+                    id="KetamineInfusionRate" 
+                    value="0.3" 
+                    min="0.3" 
+                    max="3.0" 
+                    step="0.1"
+                    onchange="calculateKetamineInfusion()"
+                    style="font-size:20px; padding:2px; width:50px; height:30px;"
+                  />
+                </span>
+                <span style="display:inline-block; vertical-align:middle;">mg/kg/hr</span>
+                <div id="ketamineWarning" style="color: red; font-size: 12px;"></div>
+                </span>
+              </td>
+              <td id="KetamineInfMg">-- mg/hr</td>
+              <td id="KetamineInfMl">-- mL</td>
+            </tr>
+            <tr>
+              <td colspan="3" style="font-size:12px; padding:3px;">Mix 1:1 bag (250 mg/250 mL recommended) || Start at 0.3 mg/kg/hr || +/- 0.1 Q 5 min || NTE 3.0 mg/kg/hr or 100 mg/hr</td>
+            </tr>
+          </table>
+      </div>
+    </div>
+		<div style="text-align:center; margin-top:20px;">
+			<button class="start-button" onclick="showPage('start-page')">
+				← Back to Start
+			</button>
+		</div>
+	</div>
+	</div>
+
+  <div id="peds-page" class="page-section">
+    <!-- ========== PEDIATRIC RSI CALCULATOR ========== -->
+    <h3 class="pediatric-title">Pediatric RSI Medication Calculator</h3>
+    <!-- Pediatric Weight Input -->
+    <div class="patient-weight">
+        Patient Weight (kg):
+        <input type="number" id="pedsWeightInput" placeholder="Weight (kg)" onchange="calculateDoses('Pediatric')" />
+      </div>
+    <!-- Peds Induction Agents -->
+    <div class="induction-agents">
+      <div class="section-title">Induction Agent</div>
+        <table>
+          <tr>
+            <th width="40%">Medication</th>
+            <th width="30%">Dose</th>
+            <th width="30%">Volume (mL)</th>
+          </tr>
+          <tr>
+            <td>Fentanyl</td>
+            <td id="pFentanylMg">-- mcg</td>
+            <td id="pFentanylMl">-- mL</td>
+          </tr>
+          <tr>
+            <td colspan="3" style="font-size:12px; padding:4px;">5 mcg/kg</td>
+          </tr>
+          <tr>
+            <td>Midazolam</td>
+            <td id="pMidazolamIndMg">-- mg</td>
+            <td id="pMidazolamIndMl">-- mL</td>
+          </tr>
+          <tr>
+            <td colspan="3" style="font-size:12px; padding:4px;">0.2 mg/kg IV/IO</td>
+          </tr>
+        </table>
+    </div>
+    <!-- Peds Paralytic Agents -->
+    <div class="paralytic-agents">
+      <div class="section-title">Paralytic Agents</div>
+        <table>
+          <tr>
+            <th width="40%">Medication</th>
+            <th width="30%">Dose</th>
+            <th width="30%">Volume (mL)</th>
+          </tr>
+          <tr>
+            <td>Succinylcholine</td>
+            <td id="pSuxMg">-- mg</td>
+            <td id="pSuxMl">-- mL</td>
+          </tr>
+          <tr>
+            <td colspan="3" style="font-size:12px; padding:4px;">1.5 mg/kg IV/IO</td>
+          </tr>
+          <tr>
+            <td>Vecuronium</td>
+            <td id="pVecMg">-- mg</td>
+            <td id="pVecMl">-- mL</td>
+          </tr>
+          <tr>
+            <td colspan="3" style="font-size:12px; padding:4px;">0.3 mg/kg IV/IO</td>
+          </tr>
+        </table>
+    </div>
+    <!-- Peds RSI Adjunct -->
+    <div class="adjunct-agents">
+      <div class="section-title">Adjunct / Support</div>
+        <table>
+          <tr>
+            <th width="40%">Medication</th>
+            <th width="30%">Dose</th>
+            <th width="30%">Volume (mL)</th>
+          </tr>
+          <tr>
+            <td>Atropine</td>
+            <td id="pAtropineMg">-- mg</td>
+            <td id="pAtropineMl">-- mL</td>
+          </tr>
+          <tr>
+            <td colspan="3" style="font-size:12px; padding:4px;">0.02 mg/kg IV/IO</td>
+          </tr>
+        </table>
+    </div>
+    <!-- Peds Ongoing Sedation -->
+    <div class="ongoing-sedation">
+    <div class="ongoing-sedation-title">Ongoing Sedation</div>
+    <!-- Green themed table for Standard Sedation -->
+    <div class="sbp110">
+      <div class="section-title">Standard Sedation</div>
+        <table>
+          <tr>
+            <th width="40%">Medication</th>
+            <th width="30%">Dose</th>
+            <th width="30%">Volume (mL)</th>
+          </tr>
+          <tr>
+            <td style="font-size: 20px; padding:2px 0px 2px 8px;">
+              <span style="display:inline-block; vertical-align:middle;">Propofol</span>
+              <span style="display:inline-block; vertical-align:middle;">
+                <input 
+                  type="number" 
+                  id="pPropofolInfusionRate" 
+                  value="100"  
+                  max="160" 
+                  onchange="calculatePropofolInfusion()"
+                  style="font-size:20px; padding:2px; width:50px; height:30px;"
+                />
+              </span>
+              <span style="display:inline-block; vertical-align:middle;"> mcg/kg/min</span>
+              <div id="pPropofolWarning" style="color: red; font-size: 12px;"></div>
+            </td>
+            <td id="pPropofolMcg">-- mcg/min</td>
+            <td id="pPropofolMl">-- mL/hr</td>
+          </tr>
+          <tr>
+            <td colspan="3" style="font-size:12px; padding:4px;">Initiate at 100 mcg/kg/min; Titrate every 5 minutes by 20mcg/kg/min; NTE 160mcg/kg/min</td>
+          <tr>
+            <td>Fentanyl</td>
+            <td id="pFentanylSedStandardMg">-- mcg</td>
+            <td id="pFentanylSedStandardMl">-- mL</td>
+          </tr>
+          <tr>
+            <td colspan="3" style="font-size:12px; padding:4px;">NTE 1 dose of 100 mcg</td>
+          </tr>
+        </table>
+    </div>
+    <!-- Yellow themed table for Mito Disease -->
+    <div class="sbp110low">
+    <div class="section-title">History of Mitochondrial Disease</div>
+      <table>
+        <tr>
+          <th width="40%">Medication</th>
+          <th width="30%">Dose</th>
+          <th width="30%">Volume (mL)</th>
+        </tr>
+        <tr>
+          <td>Midazolam</td>
+          <td id="pMidazolamSedMg">-- mg</td>
+          <td id="pMidazolamSedMl">--mL</td>
+        </tr>
+        <tr>
+          <td colspan="3" style="font-size:12px; padding:4px;">0.1 mg/kg IV/IO; NTE 5mg/dose</td>
+        </tr>
+        <tr>
+          <td>Fentanyl<br><span style="font-size:12px;">protocol info</span></td>
+          <td id="pFentanylSedMitoMg">-- mg</td>
+          <td id="pFentanylSedMitoMl">-- mL</td>
+        </tr>
+        <tr>
+          <td colspan="3" style="font-size:12px; padding:4px;">2 mcg/kg IV/IO; NTE 1 dose of 100 mcg</td>
+        </tr>
+      </table>
+    </div>
+		<div style="text-align:center; margin-top:20px;">
+			<button class="start-button" onclick="showPage('start-page')">
+				← Back to Start
+			</button>
+		</div>
+</div>
+
+  </div>
+  </div>
+
+  <script>
+    function showPage(pageId) {
+      document.getElementById('start-page').style.display = 'none';
+      document.querySelectorAll('.page-section').forEach(sec => sec.style.display = 'none');
+      document.getElementById(pageId).style.display = 'block';
+    }
+
+  function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+  }
+  // Standard medication concentrations (mg/mL)
+  const concentrations = {
+    'Etomidate': 2,   // 2 mg/mL
+    'Ketamine': 50,   // 50 mg/mL
+    'KetamineInfusion': 1, // 1 mg/mL -- mixed by provider for infusion
+    'Succinylcholine': 20, // 20 mg/mL
+    'Rocuronium': 10,  // 10 mg/mL
+    'Vecuronium': 1,   // 1 mg/mL
+    'Atropine': 0.1,   // 0.1 mg/mL
+    'Midazolam': 1,    // 1 mg/mL
+    'Fentanyl': 50,    // 50 mcg/mL
+    'Propofol': 10     // 10 mg/mL (for ongoing sedation, show mcg/min and mL/hr)
+  };    
+  // Adult weight input
+  const adultWeightInput = document.getElementById('adultWeightInput');
+  // Pediatric weight input
+  const pedsWeightInput = document.getElementById('pedsWeightInput');
+  // Calculate and update doses for the given patient group ("Adult" or "Pediatric")
+  function validateAndCalculatePediatric() {
+    try {
+      const weight = parseFloat(document.getElementById('pedsWeightInput').value);
+      if (isNaN(weight) || weight <= 0) {
+        resetPedsFields();
+        return;
+      }
+      if (weight > 50) {
+        alert("Maximum weight for pediatric patients is 50 kg.");
+        resetPedsFields();
+        return;
+      }
+      
+      if (typeof calculatePediatricDoses !== "function") {
+        throw new Error("calculatePediatricDoses() is not defined.");
+      }
+  
+      calculatePediatricDoses(weight);
+    } catch (e) {
+      console.error("Pediatric dose calculation failed:", e.message, e.stack);
+      alert("An error occurred while calculating pediatric doses:\n" + e.message);
+      if (typeof resetPedsFields === "function") {
+        resetPedsFields();
+      }
+    }
+  }
+  function calculateDoses(group) {
+    let weight = 0;
+    if (group === 'Adult') {
+    try {
+      weight = parseFloat(adultWeightInput.value);
+      if (isNaN(weight) || weight <= 0) {
+      resetAdultFields();
+    return;
+    }
+    calculateAdultDoses(weight);
+    } catch (e) {
+      console.error("Adult dose calculation failed:", e); // Logs full error
+      alert("An error occurred while calculating adult doses:\n" + e.message);
+      resetAdultFields();
+      }
+    } else if (group === 'Pediatric') {
+    validateAndCalculatePediatric();
+    }
+  }   
+  // Reset adult dose fields to default
+  function resetAdultFields() {
+    const ids = [
+    'EtomidateMg', 'EtomidateMl', 
+    'KetamineMg', 'KetamineMl',
+    'SuxMg', 'SuxMl', 
+    'RocMg', 'RocMl', 
+    'VecMg', 'VecMl',
+    'PropofolMcg', 'PropofolMl',
+    'FentanylHighMg', 'FentanylHighMl',
+    'KetamineSedationMg', 'KetamineSedationMl',
+    'MidazolamMg', 'MidazolamMl',
+    'FentanylLowMg', 'FentanylLowMl',
+    'KetamineLowMg', 'KetamineLowMl',
+    'KetamineInfMg', 'KetamineInfMl',
+    'FentanylLowMg90', 'FentanylLowMl90'];
+    ids.forEach(id => document.getElementById(id).textContent = '--');
+  }
+  // Reset pediatric dose fields to default
+  function resetPedsFields() {
+    const ids = [
+    'pFentanylMg', 'pFentanylMl',
+    'pMidazolamIndMg', 'pMidazolamIndMl', 
+    'pSuxMg', 'pSuxMl',
+    'pVecMg', 'pVecMl',
+    'pAtropineMg', 'pAtropineMl',
+    'pPropofolMcg', 'pPropofolMl',
+    'pFentanylSedStandardMg', 'pFentanylSedStandardMl',
+    'pMidazolamSedMg', 'pMidazolamSedMl',
+    'pFentanylSedMitoMg', 'pFentanylSedMitoMl'];      
+    ids.forEach(id => document.getElementById(id).textContent = '--');
+  }
+  // Adult doses calculation
+  function calculateAdultDoses(weight) {
+  // Induction Agents
+    let etomidateDoseMg = 0, etomidateVol = 0;
+    let ketamineDoseMg = 0, ketamineVol = 0;
+    
+  // Paralytic Agents
+    let suxDoseMg = 0, suxVol = 0;
+    let rocLowDoseMg = 0, rocHighDoseMg = 0, rocLowVol = 0, rocHighVol = 0;
+    let vecDoseMg = 0, vecVol = 0;
+    
+  // Ongoing Sedation variables
+    let doseMcgPerMin = 0, doseMgPerHr = 0, volumeMlPerHr = 0;
+    
+  // Fentanyl doses and volumes
+    let fentanylLowDoseMcg = 0, fentanylHighDoseMcg = 0;
+    let fentanylLowVol = 0, fentanylHighVol = 0;
+  
+  // Ketamine adjunct doses and volumes
+    let ketamineAdjDoseLowMg = 25, ketamineAdjDoseHighMg = 50;
+    let ketamineAdjLowVol = 0, ketamineAdjHighVol = 0;
+  
+  // Midazolam dose and volume
+    let midazolamDoseMg = 0, midazolamVol = 0;
+  
+  // Ketamine low dose & volume
+    let ketamineLowDoseMg = 0, ketamineLowVol = 0;
+  
+  // Ketamine infusion variables
+    let finalDose = 0, finalVolume = 0;
+  
+  // Calculate doses & volumes
+    // Etomidate 0.3 mg/kg
+    etomidateDoseMg = 0.3 * weight;
+    etomidateVol = etomidateDoseMg / concentrations.Etomidate;
+    // Ketamine 2 mg/kg
+    ketamineDoseMg = 2 * weight;
+    ketamineVol = ketamineDoseMg / concentrations.Ketamine;
+    // Succinylcholine 1.5 mg/kg
+    suxDoseMg = 1.5 * weight;
+    suxVol = suxDoseMg / concentrations.Succinylcholine;
+    // Rocuronium 0.6-1.2 mg/kg
+    rocLowDoseMg = 0.6 * weight;
+    rocHighDoseMg = 1.2 * weight;
+    rocLowVol = rocLowDoseMg / concentrations.Rocuronium;
+    rocHighVol = rocHighDoseMg / concentrations.Rocuronium;
+    // Vecuronium 0.3 mg/kg
+    vecDoseMg = 0.3 * weight;
+    vecVol = vecDoseMg / concentrations.Vecuronium;
+    // Propofol 5-50 mcg/kg/min infusion
+    const propofolRate = parseFloat(document.getElementById('PropofolInfusionRate').value);
+    const propofolConcentration = concentrations.Propofol;
+    const maxRate = 50;
+    
+    const propofolWarningDiv = document.getElementById('propofolWarning');
+    
+    if (!isNaN(propofolRate) && weight > 0) {
+      let propofolEffRate = Math.min(propofolRate, maxRate);
+      doseMcgPerMin = propofolEffRate * weight;
+      doseMgPerHr = (doseMcgPerMin * 60) / 1000;
+      volumeMlPerHr = doseMgPerHr / propofolConcentration;
+    
+      document.getElementById('PropofolMcg').textContent = doseMcgPerMin.toFixed(0) + ' mcg/min';
+      document.getElementById('PropofolMl').textContent = volumeMlPerHr.toFixed(1) + ' mL/hr';
+    
+      // Show warning if input rate exceeds max
+      if (propofolRate > maxRate) {
+        propofolWarningDiv.textContent = `⚠️ Maximum propofol infusion rate of ${maxRate} mcg/kg/min reached ⚠️`;
+        propofolWarningDiv.style.display = 'block';
+      } else {
+        propofolWarningDiv.style.display = 'none';
+        propofolWarningDiv.textContent = '';
+      }
+    } else {
+      document.getElementById('PropofolMcg').textContent = '-- mcg/min';
+      document.getElementById('PropofolMl').textContent = '-- mL/hr';
+      propofolWarningDiv.style.display = 'none';
+      propofolWarningDiv.textContent = '';
+    }
+    // Fentanyl 0.5-1 mcg/kg IVP
+    fentanylLowDoseMcg = 0.5 * weight;
+    fentanylHighDoseMcg = 1 * weight;
+    fentanylLowVol = fentanylLowDoseMcg / concentrations.Fentanyl;
+    fentanylHighVol = fentanylHighDoseMcg / concentrations.Fentanyl;
+    // Ketamine adjunct 25-50 mg IVP
+    ketamineAdjLowVol = ketamineAdjDoseLowMg / concentrations.Ketamine;
+    ketamineAdjHighVol = ketamineAdjDoseHighMg / concentrations.Ketamine;
+    // Midazolam 0.05 mg/kg IVP
+    midazolamDoseMg = 0.05 * weight;
+    midazolamVol = midazolamDoseMg / concentrations.Midazolam;
+    // Ketamine 0.5 mg/kg IVP, SBP < 100
+    ketamineLowDoseMg = 0.5 * weight;
+    ketamineLowVol = ketamineLowDoseMg / concentrations.Ketamine;
+    // Ketamine Infusion (editable input-based calculation for SBP < 100)
+    const ketamineRate = parseFloat(document.getElementById('KetamineInfusionRate').value);
+    const ketamineInfusionConcentration = concentrations.KetamineInfusion;
+    if (!isNaN(ketamineRate) && weight > 0) {
+      let calculatedDose = ketamineRate * weight;
+      let maxDose = Math.min(3.0 * weight, 100);
+      finalDose = Math.min(calculatedDose, maxDose);
+      finalVolume = finalDose / ketamineInfusionConcentration;
+    
+      document.getElementById('KetamineInfMg').textContent = finalDose.toFixed(1) + ' mg/hr';
+      document.getElementById('KetamineInfMl').textContent = finalVolume.toFixed(2) + ' mL/hr';
+    
+      // Show or hide the warning message
+      const warningDiv = document.getElementById('ketamineWarning');
+      if (calculatedDose > maxDose) {
+        warningDiv.textContent = `⚠️ Max Ketamine infusion dose reached ⚠️`;
+        warningDiv.style.display = 'block';
+      } else {
+        warningDiv.style.display = 'none';
+        warningDiv.textContent = '';
+      }
+    } else {
+      document.getElementById('KetamineInfMg').textContent = '-- mg/hr';
+      document.getElementById('KetamineInfMl').textContent = '-- mL/hr';
+    
+      // Hide warning if no valid input
+      const warningDiv = document.getElementById('ketamineWarning');
+      warningDiv.style.display = 'none';
+      warningDiv.textContent = '';
+    }
+  // Update Adult DOM fields
+  document.getElementById('EtomidateMg').textContent = etomidateDoseMg.toFixed(0) + ' mg';
+  document.getElementById('EtomidateMl').textContent = etomidateVol.toFixed(2) + ' mL';
+  
+  document.getElementById('KetamineMg').textContent = ketamineDoseMg.toFixed(0) + ' mg';
+  document.getElementById('KetamineMl').textContent = ketamineVol.toFixed(2) + ' mL';
+  
+  document.getElementById('SuxMg').textContent = suxDoseMg.toFixed(0) + ' mg';
+  document.getElementById('SuxMl').textContent = suxVol.toFixed(2) + ' mL';
+  
+  document.getElementById('RocMg').textContent = `${rocLowDoseMg.toFixed(0)} - ${rocHighDoseMg.toFixed(0)} mg`;
+  document.getElementById('RocMl').textContent = `${rocLowVol.toFixed(2)} - ${rocHighVol.toFixed(2)} mL`;
+  
+  document.getElementById('VecMg').textContent = vecDoseMg.toFixed(0) + ' mg';
+  document.getElementById('VecMl').textContent = vecVol.toFixed(2) + ' mL';
+  
+  document.getElementById('FentanylHighMg').textContent = `${fentanylLowDoseMcg.toFixed(0)} - ${fentanylHighDoseMcg.toFixed(0)} mcg`;
+  document.getElementById('FentanylHighMl').textContent = `${fentanylLowVol.toFixed(2)} - ${fentanylHighVol.toFixed(2)} mL`;
+  
+  document.getElementById('KetamineSedationMg').textContent = `${ketamineAdjDoseLowMg.toFixed(0)} - ${ketamineAdjDoseHighMg.toFixed(0)} mg`;
+  document.getElementById('KetamineSedationMl').textContent = `${ketamineAdjLowVol.toFixed(2)} - ${ketamineAdjHighVol.toFixed(2)} mL`;
+  
+  document.getElementById('MidazolamMg').textContent = midazolamDoseMg.toFixed(0) + ' mg';
+  document.getElementById('MidazolamMl').textContent = midazolamVol.toFixed(2) + ' mL';
+  
+  document.getElementById('FentanylLowMg').textContent = `${fentanylLowDoseMcg.toFixed(0)} - ${fentanylHighDoseMcg.toFixed(0)} mcg`;
+  document.getElementById('FentanylLowMl').textContent = `${fentanylLowVol.toFixed(2)} - ${fentanylHighVol.toFixed(2)} mL`;
+  
+  document.getElementById('KetamineLowMg').textContent = ketamineLowDoseMg.toFixed(0) + ' mg';
+  document.getElementById('KetamineLowMl').textContent = ketamineLowVol.toFixed(2) + ' mL';
+  }
+  
+  // Pediatric doses calculation
+  function calculatePediatricDoses(weight) {
+    // Induction Agents
+    let pFentanylDoseMcg = 0, pFentanylVol = 0;
+    let pMidazolamIndDoseMg = 0, pMidazolamIndVol = 0;
+  
+    // Paralytic Agents
+    let psuxDoseMg = 0, psuxVol = 0;
+    let pVecDoseMg = 0, pVecVol = 0;
+  
+    // Adjunct Agents
+    let pAtropineDoseMg = 0, pAtropineVol = 0;
+  
+    // Ongoing Sedation - Standard
+    let pPropofolDoseMcgPerMin = 0, pPropofolVolMlPerHr = 0;
+  
+    // Fentanyl Sedation
+    let pFentSedDoseMcg = 0, pFentSedVol = 0;
+  
+    // Mitochondrial Disease Sedation - Ketamine not included here, Midazolam only
+    let midazolamSedDoseMg = 0, midazolamSedVol = 0;
+  
+    // Calculate doses & volumes
+      // Fentanyl 5 mcg/kg first dose
+      pFentanylDoseMcg = 5 * weight;
+      pFentanylVol = pFentanylDoseMcg / concentrations.Fentanyl;
+    
+      // Midazolam 0.2 mg/kg induction dose
+      pMidazolamIndDoseMg = 0.2 * weight;
+      pMidazolamIndVol = pMidazolamIndDoseMg / concentrations.Midazolam;
+    
+      // Succinylcholine 1.5 mg/kg
+      psuxDoseMg = 1.5 * weight;
+      psuxVol = psuxDoseMg / concentrations.Succinylcholine;
+    
+      // Vecuronium 0.3 mg/kg
+      pVecDoseMg = 0.3 * weight;
+      pVecVol = pVecDoseMg / concentrations.Vecuronium;
+    
+      // Atropine 0.02 mg/kg (min 0.1 mg, max 0.5 mg)
+      pAtropineDoseMg = 0.02 * weight;
+      pAtropineDoseMg = Math.min(Math.max(pAtropineDoseMg, 0.1), 0.5);
+      pAtropineVol = pAtropineDoseMg / concentrations.Atropine;
+    
+      // Propofol infusion at 100 mcg/kg/min, +/- 20 mcg/kg/min Q5min, NTE 160 mcg/kg/min
+      // (Dose in mcg/min, volume in mL/hr)
+      const pPropofolRate = parseFloat(document.getElementById('pPropofolInfusionRate').value);
+      const pPropofolConcentration = concentrations.Propofol;
+      const maxRate = 160;
+      
+      const warningElem = document.getElementById('pPropofolWarning');
+      
+      if (!isNaN(pPropofolRate) && weight > 0) {
+        let pPropofolEffRate = Math.min(pPropofolRate, maxRate);
+        pDoseMcgPerMin = pPropofolEffRate * weight;
+        pDoseMgPerHr = (pDoseMcgPerMin * 60) / 1000;
+        pVolumeMlPerHr = pDoseMgPerHr / pPropofolConcentration;
+      
+        document.getElementById('pPropofolMcg').textContent = pDoseMcgPerMin.toFixed(0) + ' mcg/min';
+        document.getElementById('pPropofolMl').textContent = pVolumeMlPerHr.toFixed(1) + ' mL/hr';
+      
+        // Show warning if rate exceeds max
+        if (pPropofolRate > maxRate) {
+          warningElem.style.display = 'block';
+          warningElem.textContent = `⚠️ Max dose is ${maxRate} mcg/kg/min ⚠️`;
+          warningElem.style.color = 'red';
+        } else {
+          warningElem.style.display = 'none';
+        }
+      } else {
+        document.getElementById('pPropofolMcg').textContent = '-- mcg/min';
+        document.getElementById('pPropofolMl').textContent = '-- mL/hr';
+        warningElem.style.display = 'none';
+      }
+      // Fentanyl sedation 2 mcg/kg, max 100 mcg dose
+      pFentSedDoseMcg = Math.min(2 * weight, 100);
+      pFentSedVol = pFentSedDoseMcg / concentrations.Fentanyl;
+    
+      // Midazolam sedation 0.05 mg/kg
+      midazolamSedDoseMg = 0.05 * weight;
+      midazolamSedVol = midazolamSedDoseMg / concentrations.Midazolam;
+      
+    // Update Pediatric DOM fields
+    document.getElementById('pFentanylMg').textContent = pFentanylDoseMcg.toFixed(0) + ' mcg';
+    document.getElementById('pFentanylMl').textContent = pFentanylVol.toFixed(2) + ' mL';
+  
+    document.getElementById('pMidazolamIndMg').textContent = pMidazolamIndDoseMg.toFixed(1) + ' mg';
+    document.getElementById('pMidazolamIndMl').textContent = pMidazolamIndVol.toFixed(2) + ' mL';
+  
+    document.getElementById('pSuxMg').textContent = psuxDoseMg.toFixed(1) + ' mg';
+    document.getElementById('pSuxMl').textContent = psuxVol.toFixed(2) + ' mL';
+  
+    document.getElementById('pVecMg').textContent = pVecDoseMg.toFixed(1) + ' mg';
+    document.getElementById('pVecMl').textContent = pVecVol.toFixed(2) + ' mL';
+  
+    document.getElementById('pAtropineMg').textContent = pAtropineDoseMg.toFixed(2) + ' mg';
+    document.getElementById('pAtropineMl').textContent = pAtropineVol.toFixed(2) + ' mL';
+  
+    document.getElementById('pFentanylSedStandardMg').textContent = pFentSedDoseMcg.toFixed(0) + ' mcg';
+    document.getElementById('pFentanylSedStandardMl').textContent = pFentSedVol.toFixed(2) + ' mL';
+  
+    document.getElementById('pMidazolamSedMg').textContent = midazolamSedDoseMg.toFixed(1) + ' mg';
+    document.getElementById('pMidazolamSedMl').textContent = midazolamSedVol.toFixed(2) + ' mL';
+  
+    // Assuming same fentanyl sedation dose/volume used for mitochondrial sedation as in original code:
+    document.getElementById('pFentanylSedMitoMg').textContent = pFentSedDoseMcg.toFixed(0) + ' mcg';
+    document.getElementById('pFentanylSedMitoMl').textContent = pFentSedVol.toFixed(2) + ' mL';
+  }
+  // Debounced input listeners for Pediatric
+  const debouncedPedsCalc = debounce(validateAndCalculatePediatric, 100);
+  // Debounced input listeners for Adult
+  const debouncedAdultCalc = debounce(() => {
+  const weight = parseFloat(document.getElementById('adultWeightInput').value);
+    if (!isNaN(weight) && weight > 0) calculateAdultDoses(weight);
+    }, 100);
+  
+  // Add event listeners
+  document.getElementById('pedsWeightInput').addEventListener('input', debouncedPedsCalc);
+  document.getElementById('adultWeightInput').addEventListener('input', debouncedAdultCalc);
+  // Add debounced event listener for Propofol Infusion Rate input change
+  const PropofolInfusionRateInput = document.getElementById('PropofolInfusionRate');
+    if (PropofolInfusionRateInput) {
+    PropofolInfusionRateInput.addEventListener('input', debounce(() => {
+  const weight = parseFloat(adultWeightInput.value);
+    if (!isNaN(weight) && weight > 0) {
+      calculateAdultDoses(weight);
+    } else {
+      resetAdultFields();
+    }
+    }, 100));
+  }
+  // Add debounced event listener for Ketamine Infusion Rate input changes
+  const ketamineInfusionRateInput = document.getElementById('KetamineInfusionRate');
+    if (ketamineInfusionRateInput) {
+    ketamineInfusionRateInput.addEventListener('input', debounce(() => {
+  const weight = parseFloat(adultWeightInput.value);
+    if (!isNaN(weight) && weight > 0) {
+      calculateAdultDoses(weight);
+    } else {
+      resetAdultFields();
+      }
+    }, 100));
+  }
+  // Add debounced event listener for Peds Propofol Infusion Rate input change
+  const pPropofolInfusionRateInput = document.getElementById('pPropofolInfusionRate');
+    if (pPropofolInfusionRateInput) {
+    pPropofolInfusionRateInput.addEventListener('input', debounce(() => {
+  const weight = parseFloat(pedsWeightInput.value);
+    if (!isNaN(weight) && weight > 0) {
+      calculatePediatricDoses(weight);
+    } else {
+      resetPedsFields();
+    }
+    }, 100));
+  }
+	//PWA JS Code
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(function (registration) {
+          console.log('✅ Service Worker registered with scope:', registration.scope);
+        }, function (err) {
+          console.log('❌ Service Worker registration failed:', err);
+        });
+    });
+  }
+</script>
+
+  </script>
+</body>
+</html>
