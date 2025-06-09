@@ -1,16 +1,26 @@
-const CACHE_NAME = "my-pwa-cache-v1";
+// service-worker.js
+const CACHE_NAME = 'static-v1';
 const urlsToCache = [
-  "/",
-  "/index.html",
-  "/styles.css",
-  "/script.js",
-  "/icons/icon-192.png",
-  "/icons/icon-512.png"
+  './',             // catch the root (index.html)
+  './index.html',
+  './manifest.json',
+  './icons/icon-192.png',
+  './icons/icon-512.png'
 ];
 
-self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+self.addEventListener('install', evt => {
+  console.log('[SW] Installing, will cache:', urlsToCache);
+  evt.waitUntil(
+    caches.open(CACHE_NAME).then(async cache => {
+      for (let url of urlsToCache) {
+        try {
+          await cache.add(url);
+          console.log('[SW] Cached:', url);
+        } catch (err) {
+          console.error('[SW] Failed to cache:', url, err);
+        }
+      }
+    })
   );
 });
 
